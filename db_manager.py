@@ -156,7 +156,7 @@ def add_active_user(connection, user_id, line, process_id, last_command):
 
 def get_technologists_id(conn):
     cursor = conn.cursor()
-    query = "SELECT ID from users WHERE PROFILE_TYPE = 'TECHNOLOGIST'"
+    query = "SELECT ID from users WHERE PROFILE_TYPE = 'TECHNOLOGIST' AND LOG_IN = true"
     cursor.execute(query)
     result = cursor.fetchall()
     if (len(result) == 0):
@@ -198,6 +198,8 @@ def get_brigadiers_id(connection, line):
     query = f"SELECT ID from users WHERE BRIGADIERS_LINE = '{line}'"
     cursor.execute(query)
     res = cursor.fetchall()
+    if (len(res) == 0):
+        return -1
     if (res[0][0] != "NO"):
         return res[0][0]
     else:
@@ -224,8 +226,11 @@ def get_comment(connection, line):
     res = cursor.fetchall()
     return res[0][0]
 
-
-
+def update_proc_id(connection, proc_id):
+    cursor = connection.cursor()
+    query = f"UPDATE users SET process_id = process_id-1 WHERE process_id > {proc_id}"
+    cursor.execute(query)
+    connection.commit()
 
 def is_logged(connection, user_id):
     cursor = connection.cursor()
@@ -352,7 +357,7 @@ def execute_read_query(query, connection):
 
 
 connection = con_to_db()
-print(get_technologists_id(connection))
+# print(get_technologists_id(connection))
 #update_comment(connection, "HANKY", "pidor")
 #update_changing_target(connection, "ME", )
 

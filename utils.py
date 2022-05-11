@@ -11,7 +11,7 @@ from datetime import date
 
 # from flask import Flask, request
 
-token = '5145537162:AAFYmOR1uW8eTwT7sODyeQONBrcT9nQySVw'
+token = '5145537162:AAFYmOR1uW8eTwT7sODyeQONBrcT9nQySVw' # 5145537162:AAFYmOR1uW8eTwT7sODyeQONBrcT9nQySVw - Геннадий 5252133698:AAF-w9vgM1tmfNIVNJThzHF77iX0IZZ0Bl4
 bot = telebot.TeleBot(token)
 # app = Flask(__name__)
 APP_NAME = 'secondtestbotautomati'
@@ -21,9 +21,19 @@ conn = db_manager.con_to_db()
 p: Process
 process_list = []
 
-def remind_techlonogist(id):
-    if (date().today().day() == 11):
-        bot.send_message(id, "Сегодня первое число, введите, пожалуйста, целевые показатели на этот месяц, если вы этого еще не сделали\nИспользуйте команту /target")
+def remind_techlonogist():
+    tech_res = db_manager.get_technologists_id(conn)
+    today = str(date.today().day)
+    print(today)
+    if (date.today().day == 12):
+        for tech_id in tech_res:
+            bot.send_message(tech_id, "Сегодня первое число, введите, пожалуйста, целевые показатели на этот месяц, если вы этого еще не сделали\nИспользуйте команду /target")
+
+def remind_schedule():
+    job = schedule.every().day.at("09:00").do(lambda: remind_techlonogist()).tag('remind', '11')
+    while (True):  # Запуск цикла
+        schedule.run_pending()
+        time.sleep(1)
 
 def start_schedule(id, line, process_id):
     job1 = schedule.every().day.at("11:02").do(lambda: send_message2(id)).tag('daily', '1')
@@ -46,10 +56,8 @@ def start_process(id, line):  # Запуск Process
     global p
     free_proc_id = len(process_list)
     p = Process(target=start_schedule, args=((id, line, free_proc_id)))
-    global permission
-    if (permission):
-        process_list.append(p)
-        p.start()
+    process_list.append(p)
+    p.start()
 
 
 def stop_process(id):
@@ -59,6 +67,7 @@ def stop_process(id):
     p1 = process_list[proc_id]
     p1.terminate()
     process_list.pop(proc_id)
+    db_manager.update_proc_id(conn, proc_id)
 
 
 def send_message1(id):
@@ -101,7 +110,11 @@ def send_message2(id):  # сделать проверку на наличие б
                         assessment[j] = '🔴'
 
                 brigadiers_id = db_manager.get_brigadiers_id(conn, line)
-
+                if (brigadiers_id == -1):
+                    bot.send_message(id, "Отсутствуют бригадиры на данной линии.")
+                    db_manager.update_status(conn, id, search_res[1], search_res[2], '/stop')
+                    stop_process(id)
+                    return
                 bot.send_message(brigadiers_id,f'Линия: {line}\nME: {me} {assessment[0]}\nNUS: {nus} {assessment[1]}\nБрак: {waste} {assessment[2]}')
                 bot.send_message(brigadiers_id, "Дайте, пожалуйста комментарий")
                 db_manager.update_comment(conn, line, "YES")
@@ -208,7 +221,7 @@ def send_message2(id):  # сделать проверку на наличие б
 
 def efficiency_check(conn, line, me, nus, waste):
 
-   # return 0
+    return [1]
 
     targets = db_manager.get_targets(conn, line)
     print(targets)
