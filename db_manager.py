@@ -154,6 +154,19 @@ def add_active_user(connection, user_id, line, process_id, last_command):
     cursor.execute(add_user_query)
     connection.commit()
 
+def get_technologists_id(conn):
+    cursor = conn.cursor()
+    query = "SELECT ID from users WHERE PROFILE_TYPE = 'TECHNOLOGIST'"
+    cursor.execute(query)
+    result = cursor.fetchall()
+    if (len(result) == 0):
+        return 0
+    else:
+        res = []
+        for one in result:
+            res.append(one[0])
+        return res
+
 
 def delete_user(connection, user_id):
     cursor = connection.cursor()
@@ -339,6 +352,7 @@ def execute_read_query(query, connection):
 
 
 connection = con_to_db()
+print(get_technologists_id(connection))
 #update_comment(connection, "HANKY", "pidor")
 #update_changing_target(connection, "ME", )
 
@@ -359,16 +373,15 @@ connection = con_to_db()
 #query = """DROP table users;"""
 #execute_query(query, connection)
 
-#query = """DROP table targets;"""
+#query = """DROP table users;"""
 #execute_query(query, connection)
 #query = """DROP table comments;"""
 #execute_query(query, connection)
-#query = """DROP table passwords;"""
-#execute_query(query, connection)
 
 
 
-#query = "SELECT * from users"
+
+#query = "SELECT * from targets"
 #print(execute_read_query(query, connection))
 
 #print(search_user(connection, 672942225)[11])

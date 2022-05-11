@@ -1,9 +1,21 @@
 from profiles import *
 
-
+#
+# сделать приветсвтенное сообщение
+#
 
 @bot.message_handler(content_types=['text'])
 def start(message):
+
+    query = "SELECT * from users"
+    print(db_manager.execute_read_query(query, conn))
+    query = "SELECT * from passwords"
+    print(db_manager.execute_read_query(query, conn))
+    query = "SELECT * from comments"
+    print(db_manager.execute_read_query(query, conn))
+
+
+
     id = int(message.chat.id)
     search_res = db_manager.search_user(conn, id)
     if (search_res == 0):
@@ -27,13 +39,13 @@ def start(message):
         elif (message.text == passwords[0][0]):
             db_manager.update_log_in(conn, id, 'true')
             bot.send_message(message.chat.id,
-                             'Пароль успешно введен.\nВы- Администратор\nДля запуска напишите /start\nДля остановки напишите /stop\nДля выхода из учетной записи напишите /logout\nЧтобы сменить пароль напишите /changepass')
+                             'Пароль успешно введен.\nВы- Администратор\nДля запуска напишите /start\nДля остановки напишите /stop\nЧтобы сменить пароль напишите /changepass\nДля выхода из учетной записи напишите /logout')
             bot.delete_message(message.chat.id, message.message_id)
             db_manager.update_profile_type(conn, id, "ADMIN")
         elif (message.text == passwords[1][0]):
             db_manager.update_log_in(conn, id, 'true')
             bot.send_message(message.chat.id,
-                             'Пароль успешно введен.\nВы- Технолог\nДля запуска напишите /start\nДля остановки напишите /stop\nДля выхода из учетной записи напишите /logout')
+                             'Пароль успешно введен.\nВы- Технолог\nДля запуска напишите /start\nДля остановки напишите /stop\nЧтобы изменить целевые показатели напишите /target\nДля выхода из учетной записи напишите /logout')
 
             bot.delete_message(message.chat.id, message.message_id)
             db_manager.update_profile_type(conn, id, "TECHNOLOGIST")
@@ -50,6 +62,7 @@ def start(message):
             bot.send_message(message.chat.id,
                              'Выберите линию, на которой вы работаете',
                              reply_markup=markup)
+            #сделать команду /changeline
 
         else:
             bot.send_message(message.chat.id, 'Неверный пароль, попробуйте еще раз')
@@ -60,7 +73,9 @@ if (__name__ == '__main__'):
         db_manager.create_table_users(conn)
         db_manager.create_table_targets(conn)
         db_manager.create_table_passwords(conn)
+
         bot.polling(none_stop=True)
+
     except:
         pass
     finally:

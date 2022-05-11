@@ -81,10 +81,9 @@ def admin(message, id, search_res):
 
     elif(search_res[7] != "NO"):
         db_manager.change_pass(conn, search_res[7], message.text)
-        db_manager.logout_after_change_pass(conn, search_res[7])
         db_manager.update_changing_pass(conn, "NO", id)
-
-
+        logout_after_change_pass(conn, search_res[7])
+        bot.send_message(id, "Пароль успешно изменен")
 
     else:
         bot.send_message(message.from_user.id, 'Неизвестная команда. Напишите /help')
@@ -270,6 +269,3 @@ def brigadier(message, id, search_res):
             Facial_btn = types.KeyboardButton("FACIAL")
             markup.add(Hanky_btn, Facial_btn)
             bot.send_message(id, "Некорректное название линии, используйте кнопки", reply_markup=markup)
-
-
-
