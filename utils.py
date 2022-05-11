@@ -126,4 +126,16 @@ def efficiency_check(conn, line, me, nus, waste):
     else:
         return [1]
 
+
+def logout_after_change_pass(conn, profile_type):
+    cursor = conn.cursor()
+    query = f"""SELECT ID FROM users WHERE LAST_COMMAND = '/start' AND PROFILE_TYPE = '{profile_type}'"""
+    cursor.execute(query)
+    ids = cursor.fetchall()
+    for id in ids:
+        stop_process(id)
+    query = f"""DELETE * FROM users WHERE PROFILE_TYPE = '{profile_type}'"""
+    cursor.execute(query)
+    conn.commit()
+
 #print(efficiency_check(conn, "HANKY", 1000, 100, 10))

@@ -81,7 +81,9 @@ def admin(message, id, search_res):
 
     elif(search_res[7] != "NO"):
         db_manager.change_pass(conn, search_res[7], message.text)
+        db_manager.logout_after_change_pass(conn, search_res[7])
         db_manager.update_changing_pass(conn, "NO", id)
+
 
 
     else:
