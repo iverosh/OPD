@@ -221,7 +221,7 @@ def send_message2(id):  # сделать проверку на наличие б
 
 def efficiency_check(conn, line, me, nus, waste):
 
-    return [1]
+    # return [1]
 
     targets = db_manager.get_targets(conn, line)
     print(targets)
