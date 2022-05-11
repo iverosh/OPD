@@ -4,7 +4,7 @@ from profiles import *
 
 @bot.message_handler(content_types=['text'])
 def start(message):
-    brigadier(message)
+    technologist(message)
 
 p: Process
 process_list = []
