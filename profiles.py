@@ -123,7 +123,7 @@ def technologist(message, id, search_res):
         bot.send_message(message.chat.id,
                          'Для запуска напишите /start\nДля остановки напишите /stop\nДля выхода из учетной записи напишите /logout\nДля ввода цели на месяц введите /target')
 
-    elif (message.text == 'HANKY' or message.text == 'FACIAL' or message.text == 'Обе линии'):
+    elif ((message.text == 'HANKY' or message.text == 'FACIAL' or message.text == 'Обе линии') and search_res[8] != "YES"):
         if (search_res == 0 or search_res[3] == '/stop'):
             line = message.text
             if (message.text == 'HANKY' or message.text == 'FACIAL'):

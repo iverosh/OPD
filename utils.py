@@ -10,13 +10,15 @@ import db_manager
 
 # from flask import Flask, request
 
-token = '5145537162:AAFYmOR1uW8eTwT7sODyeQONBrcT9nQySVw'
+token = '1638439555:AAH79VtiGN2LuJ_ukB82Gk39JyNechOt_EE'
 bot = telebot.TeleBot(token)
 # app = Flask(__name__)
 APP_NAME = 'secondtestbotautomati'
-password = '123'
+
 conn = db_manager.con_to_db()
 
+p: Process
+process_list = []
 
 def start_schedule(id, line, process_id):
     job1 = schedule.every().day.at("11:02").do(lambda: send_message2(id)).tag('daily', '1')
@@ -60,6 +62,7 @@ def send_message1(id):
     bot.send_message(id, f'Отправка сообщения по времени. Ваша линия - {line}')
 
 
+
 def send_message2(id):
     search_res = db_manager.search_user(conn, id)
     line = search_res[1]
@@ -71,22 +74,56 @@ def send_message2(id):
         global permission
         permission = False
     else:
-        for i in range(numpy.shape(info_res)[0]):
-            assessment = '🟢'
-            total = info_res[i][2]
-            defects = info_res[i][3]
-            efficiency = (total - defects) / total * 100
-            efficiency_str = format(efficiency, '.2f')
-            if (efficiency < 90):
-                assessment = '🔴'
-            bot.send_message(id,
-                             f'Линия: {line}\nВсего произведено: {total}\nБрак: {defects}\nЭффективность: {efficiency_str}{assessment}')
+        if (len(info_res) > 1):
+            line = "HANKY"
+        for i in info_res:
+            assessment = []
+            for j in range(3):
+                assessment.append('🟢')
+            me = i[0]
+            nus = i[1]              #достать это все из базы
+            waste = i[2]
+            efficiency = efficiency_check(conn, line, me, nus, waste)
+            if (efficiency[0] == 0):
+                print("sas")
+                for j in range(3):
+                    if(efficiency[j+ 1] == 0):
+                        assessment[j] = '🔴'
 
-def efficiency_check(conn, line):
-    me = 12
-    nus = 3
-    waste = 7 # тут достаем показатели из бд, а пока что так
+                brigadiers_id = db_manager.get_brigadiers_id(conn, line)
+                bot.send_message(brigadiers_id,f'Линия: {line}\nME: {me} {assessment[0]}\nNUS: {nus} {assessment[1]}\nБрак: {waste} {assessment[2]}')
+                bot.send_message(brigadiers_id, "Дайте, пожалуйста комментарий")
+                db_manager.update_comment(conn, line, "YES")
+                comment = db_manager.get_comment(conn, line)
+                while(comment == "YES"):
+                    comment = db_manager.get_comment(conn, line)
+                    if (comment != "YES"):
+                        if (len(comment) < 10):
+                            bot.send_message(brigadiers_id, "Ваш комментарий слишком короткий, напишиите, пожалуйста, более подробно")
+                            comment = "YES"
+                            db_manager.update_comment(conn, line, "YES")
+                if (db_manager.search_user(conn, id)[6] != "BRIGADIER"):
+                    bot.send_message(id,f'Линия: {line}\nME: {me} {assessment[0]}\nNUS: {nus} {assessment[1]}\nБрак: {waste} {assessment[2]}')
+                    bot.send_message(id, "Комментарий от бригадира:\n" + comment)
+
+                line = "FACIAL"
+                bot.send_message(brigadiers_id, "Комментарий принят")
+                db_manager.update_comment(conn, line, "NO")
+
+
+
+def efficiency_check(conn, line, me, nus, waste):
+
+   # return 0
+
     targets = db_manager.get_targets(conn, line)
-    if targets[0] < me or targets[1] < nus or targets [2] < waste:
-        # достаем из базы user'a с profile_type = 'brigadier' и отправляем ему сообщение, прося ввести комментарий
-        pass
+    if targets[0] > me or targets[1] < nus or targets[2] < waste:
+        res = [0]
+        res.append(0 if targets[0] > me else 1)
+        res.append(0 if targets[1] < nus else 1)
+        res.append(0 if targets [2] < waste else 1)
+        return res
+    else:
+        return [1]
+
+#print(efficiency_check(conn, "HANKY", 1000, 100, 10))
