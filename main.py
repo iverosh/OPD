@@ -10,12 +10,12 @@ from profiles import *
 @bot.message_handler(content_types=['text'])
 def start(message):
 
-    query = "SELECT * from users"
-    print(db_manager.execute_read_query(query, conn))
-    query = "SELECT * from passwords"
-    print(db_manager.execute_read_query(query, conn))
-    query = "SELECT * from comments"
-    print(db_manager.execute_read_query(query, conn))
+    # query = "SELECT * from users"
+    # print(db_manager.execute_read_query(query, conn))
+    # query = "SELECT * from passwords"
+    # print(db_manager.execute_read_query(query, conn))
+    # query = "SELECT * from comments"
+    # print(db_manager.execute_read_query(query, conn))
 
 
 

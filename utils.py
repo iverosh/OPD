@@ -11,7 +11,7 @@ from datetime import date
 
 # from flask import Flask, request
 
-token = '5145537162:AAFYmOR1uW8eTwT7sODyeQONBrcT9nQySVw' # 5145537162:AAFYmOR1uW8eTwT7sODyeQONBrcT9nQySVw - Геннадий 5252133698:AAF-w9vgM1tmfNIVNJThzHF77iX0IZZ0Bl4
+token = '5252133698:AAF-w9vgM1tmfNIVNJThzHF77iX0IZZ0Bl4' # 5145537162:AAFYmOR1uW8eTwT7sODyeQONBrcT9nQySVw - Геннадий 
 bot = telebot.TeleBot(token)
 # app = Flask(__name__)
 APP_NAME = 'secondtestbotautomati'
@@ -30,14 +30,14 @@ def remind_techlonogist():
             bot.send_message(tech_id, "Сегодня первое число, введите, пожалуйста, целевые показатели на этот месяц, если вы этого еще не сделали\nИспользуйте команду /target")
 
 def remind_schedule():
-    job = schedule.every().day.at("09:00").do(lambda: remind_techlonogist()).tag('remind', '11')
+    job = schedule.every().day.at("13:14").do(lambda: remind_techlonogist()).tag('remind', '11')
     while (True):  # Запуск цикла
         schedule.run_pending()
         time.sleep(1)
 
 def start_schedule(id, line, process_id):
     job1 = schedule.every().day.at("11:02").do(lambda: send_message2(id)).tag('daily', '1')
-    job2 = schedule.every(5).seconds.do(lambda: send_message2(id)).tag('secondly', '2') #15 sek
+    job2 = schedule.every(10).seconds.do(lambda: send_message2(id)).tag('secondly', '2') #15 sek
     res = db_manager.search_user(conn, id)
     if (res == 0):
         db_manager.add_active_user(conn, id, line, process_id, '/start')
@@ -157,14 +157,17 @@ def send_message2(id):  # сделать проверку на наличие б
             efficiency_facial = efficiency_check(conn, line_facial, me_facial, nus_facial, waste_facial)
 
             if (efficiency_hanky[0] == 0 or efficiency_facial[0] == 0): #добавить елс
-
+                comment_hanky = db_manager.get_comment(conn, line_hanky)
+                comment_facial = db_manager.get_comment(conn, line_facial)
+                brigadiers_id_hanky = db_manager.get_brigadiers_id(conn, line_hanky)
+                brigadiers_id_facial = db_manager.get_brigadiers_id(conn, line_facial)
                 if (efficiency_hanky[0] == 0):
                     for j in range(3):
                         if (efficiency_hanky[j + 1] == 0):
                             assessment_hanky[j] = '🔴'
                     brigadiers_id_hanky = db_manager.get_brigadiers_id(conn, line_hanky)
                     bot.send_message(brigadiers_id_hanky,
-                                     f'Линия: {line_hanky}\nME: {me_hanky} {assessment_hanky[0]}\nNUS: {nus_hanky} {assessment_hanky[1]}\nБрак: {waste_hanky} {assessment_hanky[2]}')
+                                     f'Линия: {line_hanky}\nME: {me_hanky}% {assessment_hanky[0]}\nNUS: {nus_hanky} {assessment_hanky[1]}\nБрак: {waste_hanky} {assessment_hanky[2]}')
                     bot.send_message(brigadiers_id_hanky, "Дайте, пожалуйста комментарий")
                     db_manager.update_comment(conn, line_hanky, "YES")
                     comment_hanky = db_manager.get_comment(conn, line_hanky)
@@ -176,46 +179,42 @@ def send_message2(id):  # сделать проверку на наличие б
                             assessment_facial[j] = '🔴'
                     brigadiers_id_facial = db_manager.get_brigadiers_id(conn, line_facial)
                     bot.send_message(brigadiers_id_facial,
-                                     f'Линия: {line_facial}\nME: {me_hanky} {assessment_hanky[0]}\nNUS: {nus_hanky} {assessment_hanky[1]}\nБрак: {waste_hanky} {assessment_hanky[2]}')
+                                     f'Линия: {line_facial}\nME: {me_facial}% {assessment_facial[0]}\nNUS: {nus_facial} {assessment_facial[1]}\nБрак: {waste_facial} {assessment_facial[2]}')
                     bot.send_message(brigadiers_id_facial, "Дайте, пожалуйста комментарий")
                     db_manager.update_comment(conn, line_facial, "YES")
-                    comment_facial = db_manager.get_comment(conn, line_hanky)
+                    comment_facial = db_manager.get_comment(conn, line_facial)
 
-                while (comment_hanky == "YES" or len(comment_hanky) < 10 or comment_facial == "YES" or len(comment_facial) < 10):
+                while ((comment_hanky == "YES" or (len(comment_hanky) < 10 and comment_hanky != "NO") or comment_facial == "YES" or (len(comment_facial) < 10) and comment_facial != "NO")):
                     comment_hanky = db_manager.get_comment(conn, line_hanky)
                     comment_facial = db_manager.get_comment(conn, line_facial)
 
 
-                    if (comment_hanky == "YES" or len(comment_hanky) < 10 ):
-                        if (comment_hanky != "YES"):
-                            if (len(comment_hanky) < 10):
-                                print("короткий комент")
-                                bot.send_message(brigadiers_id_hanky,
-                                                 "Ваш комментарий слишком короткий, напишиите, пожалуйста, более подробно")
-                                comment_hanky = "YES"
-                                db_manager.update_comment(conn, line_hanky, "YES")
-                    if (comment_facial == "YES" or len(comment_facial) < 10 ):
-                        if (comment_facial != "YES"):
-                            if (len(comment_facial) < 10):
-                                print("короткий комент")
-                                bot.send_message(brigadiers_id_facial,
-                                                 "Ваш комментарий слишком короткий, напишиите, пожалуйста, более подробно")
-                                comment_facial = "YES"
-                                db_manager.update_comment(conn, line_facial, "YES")
+                    if (len(comment_hanky) < 10 and comment_hanky != "NO" and comment_hanky != "YES"):
+                        print("короткий комент")
+                        bot.send_message(brigadiers_id_hanky,
+                            "Ваш комментарий слишком короткий, напишиите, пожалуйста, более подробно")
+                        comment_hanky = "YES"
+                        db_manager.update_comment(conn, line_hanky, "YES")
+                    if (len(comment_facial) < 10 and comment_facial != "NO" and comment_facial != "YES"):
+                        print("короткий комент")
+                        bot.send_message(brigadiers_id_facial,
+                                            "Ваш комментарий слишком короткий, напишиите, пожалуйста, более подробно")
+                        comment_facial = "YES"
+                        db_manager.update_comment(conn, line_facial, "YES")
                 if (db_manager.search_user(conn, id)[6] != "BRIGADIER"):
                     bot.send_message(id,
-                                     f'Линия: {line_hanky}\nME: {me_hanky} {assessment_hanky[0]}\nNUS: {nus_hanky} {assessment_hanky[1]}\nБрак: {waste_hanky} {assessment_hanky[2]}')
-                    if (efficiency_facial[0] == 0):
+                                     f'Линия: {line_hanky}\nME: {me_hanky}% {assessment_hanky[0]}\nNUS: {nus_hanky} {assessment_hanky[1]}\nБрак: {waste_hanky} {assessment_hanky[2]}')
+                    if (efficiency_hanky[0] == 0):
                         bot.send_message(id, "Комментарий от бригадира:\n" + comment_hanky)
                         bot.send_message(brigadiers_id_hanky, "Комментарий принят")
 
                     bot.send_message(id,
-                                     f'Линия: {line_facial}\nME: {me_facial} {assessment_facial[0]}\nNUS: {nus_facial} {assessment_facial[1]}\nБрак: {waste_facial} {assessment_facial[2]}')
+                                     f'Линия: {line_facial}\nME: {me_facial}% {assessment_facial[0]}\nNUS: {nus_facial} {assessment_facial[1]}\nБрак: {waste_facial} {assessment_facial[2]}')
                     if (efficiency_facial[0] == 0):
                         bot.send_message(id, "Комментарий от бригадира:\n" + comment_facial)
                         bot.send_message(brigadiers_id_facial, "Комментарий принят")
 
-                    bot.send_message(brigadiers_id_facial, "Комментарий принят")
+                    # bot.send_message(brigadiers_id_facial, "Комментарий принят")
 
 
 
