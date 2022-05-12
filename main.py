@@ -1,8 +1,11 @@
+from utils import remind_schedule, process_list
+from multiprocessing import *
 from profiles import *
-
 #
 # сделать приветсвтенное сообщение
 #
+
+
 
 @bot.message_handler(content_types=['text'])
 def start(message):
@@ -67,16 +70,25 @@ def start(message):
         else:
             bot.send_message(message.chat.id, 'Неверный пароль, попробуйте еще раз')
             bot.delete_message(message.chat.id, message.message_id)
+
+
+
 if (__name__ == '__main__'):
     try:
+        
         db_manager.create_table_comments(conn)
         db_manager.create_table_users(conn)
         db_manager.create_table_targets(conn)
         db_manager.create_table_passwords(conn)
-
+        remind_process = Process(target=remind_schedule, args=())
+        process_list.append(remind_process)
+        remind_process.start()
         bot.polling(none_stop=True)
-
+        
     except:
         pass
     finally:
+        p2 = process_list[0]
+        p2.terminate()
+        process_list.pop(0)
         conn.close()
