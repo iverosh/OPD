@@ -281,10 +281,10 @@ def update_status(connection, user_id, line, process_id, last_command):
 
 
 def select_efficiency(connection, line):
-    me1 = 1000 #hanky
+    me1 = 95 #hanky
     nus1 = 100
     waste1 = 10
-    me2 = 1000 #facial
+    me2 = 84 #facial
     nus2 = 100
     waste2 = 10
     if (line == "Обе линии"):
